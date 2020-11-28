@@ -1,11 +1,7 @@
+from bs4 import BeautifulSoup
 import datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import os
 import requests
-from sys import exit
-import ssl
-import smtplib
 
 def url(lat, lon, exclude=[], unit=None):
     """
@@ -20,7 +16,7 @@ def url(lat, lon, exclude=[], unit=None):
         Returns:
             base_url (str): URL to use for API call with params included
 
-        Example: base_url(32.777981, -96.796211, exclude=["minutely", "hourly"], unit="imperial")
+        Example: url(32.777981, -96.796211, exclude=["minutely", "hourly"], unit="imperial")
     """
 
     base_url = f"https://api.openweathermap.org/data/2.5/onecall?"
@@ -55,9 +51,11 @@ def request(url):
 def parse(body):
     """Parses the JSON and returns HTML message"""
 
+    # converts epoch to X:XX AM/PM
     convert_epoch = lambda time: datetime.datetime.fromtimestamp(time).strftime('%I:%M %p').lstrip('0')
+    # converts mm to inches (can be changed to any unit)
     convert_mm = lambda mm: str(round(float(mm) / 25.4, 1)) + " in."
-    message = "<html><body><pre>"
+    message = "<pre>"
 
     # handle current
     current = body["current"]
@@ -69,7 +67,7 @@ def parse(body):
     }
 
     message += f"<b>Current Weather ({current_info['time']}):</b>\n"
-    message += f"Temp: {current_info['temp']}&deg;F (feels like {current_info['feel']}&deg;F)\n"
+    message += f"Temp: {current_info['temp']}&deg; (feels like {current_info['feel']}&deg;)\n"
 
     for desc in current["weather"]:
         current_info["conditions"].append(desc["description"])
@@ -95,7 +93,7 @@ def parse(body):
         "conditions": [] 
     }
     message += f"Sunrise/sunset: {daily_info['sunrise']} - {daily_info['sunset']}\n"
-    message += f"Hi/Lo: {daily_info['max']}&deg;F/{daily_info['min']}&deg;F\n"
+    message += f"Hi/Lo: {daily_info['max']}&deg;/{daily_info['min']}&deg;\n"
 
     for desc in today["weather"]:
         daily_info["conditions"].append(desc["description"])
@@ -126,21 +124,19 @@ def parse(body):
         for alert in alerts:
             message += f"{alert['name']} from {alert['start']} - {alert['end']}\n"
 
-    message += "</pre></body></html>"
+    message += "</pre>"
     return message
 
 def main():
-    # Dallas
     lat = 32.777981
     lon = -96.796211
-    # optional params
     exclude = ["minutely", "hourly"]
     unit = "imperial"
-    # build URL, make request, parse JSON, print information
     weather_url = url(lat, lon, exclude=exclude, unit=unit) 
     weather_json = request(weather_url)
     weather_msg = parse(weather_json)
-    print(weather_msg)
+    text = BeautifulSoup(weather_msg, "html.parser").text.strip()
+    print(text)
 
 if __name__ == "__main__":
     main()
