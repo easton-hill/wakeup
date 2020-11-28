@@ -10,12 +10,14 @@ def main():
     exclude = ["minutely", "hourly"]
     unit = "imperial"
 
+    # email params
+    subject = f"Wake Up! {datetime.date.today().strftime('%x')}"
+    to = "" # email address that will receive email
+
     # build URL, make request, parse JSON, send email 
     weather_url = weather.url(lat, lon, exclude=exclude, unit=unit) 
     weather_json = weather.request(weather_url)
     weather_msg = weather.parse(weather_json)
-    subject = f"Wake Up! {datetime.date.today().strftime('%x')}"
-    to = "" # email address that will receive email
     send_email.send(weather_msg, subject, to)
 
 if __name__ == "__main__":
