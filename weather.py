@@ -52,7 +52,8 @@ def parse(body):
     """Parses the JSON and returns HTML message"""
 
     # converts epoch to X:XX AM/PM
-    convert_epoch = lambda time: datetime.datetime.fromtimestamp(time).strftime('%I:%M %p').lstrip('0')
+    offset = body["timezone_offset"]
+    convert_epoch = lambda time: datetime.datetime.fromtimestamp(time + offset).strftime('%I:%M %p').lstrip('0')
     # converts mm to inches (can be changed to any unit)
     convert_mm = lambda mm: str(round(float(mm) / 25.4, 1)) + " in."
     message = "<pre>"
