@@ -123,7 +123,8 @@ def parse(body):
         message += "\n"
         message += "<b>Weather Alerts</b>\n"
         for alert in alerts:
-            message += f"{alert['name']} from {alert['start']} - {alert['end']}\n"
+            message += f"{alert['name']} from {alert['start']} - {alert['end']}:"
+            message += f"{alert['desc']}\n"
 
     message += "</pre>"
     return message
